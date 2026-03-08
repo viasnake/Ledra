@@ -1,45 +1,36 @@
-# 再現可能なデプロイ手順（Cloudflare / Docker）
+# Reproducible deployment (Cloudflare / Docker)
 
-このドキュメントは `deploy/cloudflare` と `deploy/docker` のテンプレートを使って、第三者が同じ手順でデプロイできることを目的にしています。
+This document ties the runnable examples under `deploy/` to the Git-native registry workflow.
 
-## Cloudflare へのデプロイ
+## Shared principle
 
-参照テンプレート:
+Use a registry data repository as source-of-truth input, then regenerate artifacts and redeploy:
 
-- `deploy/cloudflare/wrangler.toml.example`
-- `deploy/cloudflare/worker.mjs`
-- `deploy/cloudflare/README.md`
+```bash
+node apps/cli/dist/apps/cli/src/index.js validate --registry <registry_repo_path>
+node apps/cli/dist/apps/cli/src/index.js build --registry <registry_repo_path>
+```
 
-手順:
+## Docker
 
-1. テンプレートをコピー。
+- Files:
+  - `deploy/docker/Dockerfile`
+  - `deploy/docker/compose.yaml`
+  - `deploy/docker/server.mjs`
+- Uses mounted registry repo (`LEDRA_REGISTRY_PATH`) in read-only mode.
 
-   ```bash
-   cp deploy/cloudflare/wrangler.toml.example deploy/cloudflare/wrangler.toml
-   ```
+```bash
+docker compose -f deploy/docker/compose.yaml up --build -d
+```
 
-2. `deploy/cloudflare/wrangler.toml` の `name`, `account_id`, `route` を編集。
-3. static 成果物（例: `dist/`）をビルド。
-4. `deploy/cloudflare/README.md` のコマンドで `wrangler deploy` を実行。
+## Cloudflare Workers + Assets
 
-## Docker へのデプロイ
+- Files:
+  - `deploy/cloudflare/wrangler.toml.example`
+  - `deploy/cloudflare/worker.mjs`
+- Uses CLI export output wired into assets (`deploy/cloudflare/public/bundle.json`).
 
-参照テンプレート:
-
-- `deploy/docker/Dockerfile.template`
-- `deploy/docker/compose.yaml`
-- `deploy/docker/README.md`
-
-手順:
-
-1. 必要に応じて `Dockerfile.template` を `Dockerfile` として利用。
-2. `compose.yaml` の `image`, `ports`, `volumes` を環境に合わせて調整。
-3. 以下を実行。
-
-   ```bash
-   docker compose -f deploy/docker/compose.yaml build
-   docker compose -f deploy/docker/compose.yaml up -d
-   ```
-
-4. `http://localhost:8080/health` 等で read-only 提供を確認。
-
+```bash
+node apps/cli/dist/apps/cli/src/index.js export --registry <registry_repo_path> > deploy/cloudflare/public/bundle.json
+cd deploy/cloudflare && npx wrangler deploy
+```

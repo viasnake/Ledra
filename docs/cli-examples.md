@@ -1,39 +1,45 @@
-# CLI 利用例
+# CLI examples
 
-ここでは、`validate / search / browse / serve` の最小実行例を示します。
-
-## validate
+Build first:
 
 ```bash
-pnpm --filter @ledra/validator run validate ./registry
+npm run build
 ```
 
-- JSON Schema / 参照整合性 / 命名規則などのチェックを実行。
-- CI では必須ジョブとして実行し、失敗時は merge しない運用を推奨。
+Use a Git-tracked registry data repo (example path: `./.local/registry-data`).
 
-## search
+## Validate
 
 ```bash
-pnpm --filter @ledra/search run build-index ./registry --out ./dist/search-index
+node apps/cli/dist/apps/cli/src/index.js validate --registry ./.local/registry-data
 ```
 
-- 静的に配布可能な検索インデックスを生成。
-- static-first 配信では、この成果物を CDN へ配置。
-
-## browse
+## Build static bundle + diagnostics
 
 ```bash
-pnpm --filter @ledra/cli run browse ./registry --entity ipam/prefixes
+node apps/cli/dist/apps/cli/src/index.js build --registry ./.local/registry-data
 ```
 
-- 人間向け閲覧に最適化した一覧・詳細表示を提供。
-
-## serve
+## Inspect/search entities
 
 ```bash
-pnpm --filter @ledra/api run serve ./registry --port 8080
+node apps/cli/dist/apps/cli/src/index.js inspect --registry ./.local/registry-data vlan
 ```
 
-- API を read-only で公開。
-- 書き込みは API 経由ではなく Git ワークフローで行う。
+## Export bundle JSON
 
+```bash
+node apps/cli/dist/apps/cli/src/index.js export --registry ./.local/registry-data > ./dist/bundle.json
+```
+
+## Serve command status
+
+```bash
+node apps/cli/dist/apps/cli/src/index.js serve
+```
+
+Current output:
+
+```text
+serve mode is read-only and scheduled after validate/build.
+```
