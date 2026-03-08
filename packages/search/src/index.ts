@@ -33,7 +33,10 @@ const entityOrder = (left: EntityRecord, right: EntityRecord): number => {
   return left.title.localeCompare(right.title);
 };
 
-const toNormalizedString = (value: unknown): string => String(value ?? '').trim().toLowerCase();
+const toNormalizedString = (value: unknown): string =>
+  String(value ?? '')
+    .trim()
+    .toLowerCase();
 
 const toNormalizedValues = (value: unknown): readonly string[] => {
   if (Array.isArray(value)) {
@@ -167,7 +170,10 @@ const buildRelatedEntityIds = (
   return new Set(
     repository
       .listRelations()
-      .filter((relation) => !normalizedRelationType || relation.relationType.toLowerCase() === normalizedRelationType)
+      .filter(
+        (relation) =>
+          !normalizedRelationType || relation.relationType.toLowerCase() === normalizedRelationType
+      )
       .flatMap((relation) => {
         const sourceId = relation.sourceId.toLowerCase();
         const targetId = relation.targetId.toLowerCase();
@@ -187,17 +193,21 @@ const buildRelatedEntityIds = (
 
 export const searchEntities = (
   query: SearchQueryInput,
-  repository: ReadOnlyRepository = createReadOnlyRepository()
+  repository: ReadOnlyRepository = createReadOnlyRepository({ entities: [] })
 ): readonly EntityRecord[] => {
   const normalizedQuery = normalizeStructuredQuery(query);
 
   const text = normalizedQuery.text ? normalizedQuery.text.toLowerCase() : '';
   const type = normalizedQuery.type ? normalizedQuery.type.toLowerCase() : '';
   const relatedTo = normalizedQuery.relatedTo ? normalizedQuery.relatedTo.toLowerCase() : '';
-  const relationType = normalizedQuery.relationType ? normalizedQuery.relationType.toLowerCase() : '';
+  const relationType = normalizedQuery.relationType
+    ? normalizedQuery.relationType.toLowerCase()
+    : '';
   const attributes = normalizedQuery.attributes ?? [];
 
-  const relatedEntityIds = relatedTo ? buildRelatedEntityIds(repository, relatedTo, relationType) : undefined;
+  const relatedEntityIds = relatedTo
+    ? buildRelatedEntityIds(repository, relatedTo, relationType)
+    : undefined;
 
   const filtered = repository.listEntities().filter((entity) => {
     if (type && entity.type.toLowerCase() !== type) {
