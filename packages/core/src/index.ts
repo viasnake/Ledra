@@ -29,6 +29,26 @@ type RepositoryInput = {
 
 const normalizePath = (filePath: string): string => filePath.replaceAll('\\', '/');
 
+const resolveRegistryDirectory = (registryRoot: string): string => {
+  const absoluteRoot = resolve(registryRoot);
+  const directEntitiesPath = join(absoluteRoot, 'entities');
+  const directRelationsPath = join(absoluteRoot, 'relations');
+
+  if (existsSync(directEntitiesPath) || existsSync(directRelationsPath)) {
+    return absoluteRoot;
+  }
+
+  const nestedRegistryPath = join(absoluteRoot, 'registry');
+  if (
+    existsSync(join(nestedRegistryPath, 'entities')) ||
+    existsSync(join(nestedRegistryPath, 'relations'))
+  ) {
+    return nestedRegistryPath;
+  }
+
+  return absoluteRoot;
+};
+
 const findRepositoryRoot = (registryRoot: string): string => {
   let current = resolve(registryRoot);
   let bestMatch: string | undefined;
@@ -52,18 +72,21 @@ const findDataFiles = (directoryPath: string): string[] => {
     return [];
   }
 
-  return readdirSync(directoryPath, { withFileTypes: true }).flatMap((entry: { name: string; isDirectory: () => boolean }) => {
-    const entryPath = join(directoryPath, entry.name);
+  return readdirSync(directoryPath, { withFileTypes: true }).flatMap(
+    (entry: { name: string; isDirectory: () => boolean }) => {
+      const entryPath = join(directoryPath, entry.name);
 
-    if (entry.isDirectory()) {
-      return findDataFiles(entryPath);
+      if (entry.isDirectory()) {
+        return findDataFiles(entryPath);
+      }
+
+      const extension = extname(entry.name).toLowerCase();
+      return extension === '.json' || extension === '.yaml' || extension === '.yml'
+        ? [entryPath]
+        : [];
     }
-
-    const extension = extname(entry.name).toLowerCase();
-    return extension === '.json' || extension === '.yaml' || extension === '.yml' ? [entryPath] : [];
-  });
+  );
 };
-
 
 const parseScalar = (value: string): unknown => {
   const trimmed = value.trim();
@@ -167,7 +190,9 @@ const toEntityRecord = (data: unknown, sourceFilePath: string): EntityRecord => 
     type: typeof value.type === 'string' ? value.type : '',
     title: typeof value.title === 'string' ? value.title : '',
     ...(typeof value.summary === 'string' ? { summary: value.summary } : {}),
-    tags: Array.isArray(value.tags) ? value.tags.filter((tag): tag is string => typeof tag === 'string') : [],
+    tags: Array.isArray(value.tags)
+      ? value.tags.filter((tag): tag is string => typeof tag === 'string')
+      : [],
     relations: relationsRaw
       .map((relation) => {
         if (typeof relation !== 'object' || relation === null) {
@@ -175,7 +200,10 @@ const toEntityRecord = (data: unknown, sourceFilePath: string): EntityRecord => 
         }
 
         const relationRecord = relation as Record<string, unknown>;
-        if (typeof relationRecord.type !== 'string' || typeof relationRecord.targetId !== 'string') {
+        if (
+          typeof relationRecord.type !== 'string' ||
+          typeof relationRecord.targetId !== 'string'
+        ) {
           return undefined;
         }
 
@@ -192,7 +220,12 @@ const toRelationRecord = (data: unknown, sourceFilePath: string): RelationRecord
   }
 
   const value = data as RawRelationRecord;
-  const relationType = typeof value.relationType === 'string' ? value.relationType : typeof value.type === 'string' ? value.type : undefined;
+  const relationType =
+    typeof value.relationType === 'string'
+      ? value.relationType
+      : typeof value.type === 'string'
+        ? value.type
+        : undefined;
 
   if (
     typeof value.sourceType !== 'string' ||
@@ -212,7 +245,10 @@ const toRelationRecord = (data: unknown, sourceFilePath: string): RelationRecord
   };
 };
 
-const normalizeCollections = ({ entities, relations = [] }: RepositoryInput): Required<RepositoryInput> => {
+const normalizeCollections = ({
+  entities,
+  relations = []
+}: RepositoryInput): Required<RepositoryInput> => {
   const entityMap = new Map<string, EntityRecord>();
   const relationMap = new Map<string, RelationRecord>();
 
@@ -220,7 +256,9 @@ const normalizeCollections = ({ entities, relations = [] }: RepositoryInput): Re
     const entityKey = `${entity.type}::${entity.id}`;
     const dedupedRelations = entity.relations.filter(
       (candidate, index, allRelations) =>
-        allRelations.findIndex((entry) => entry.type === candidate.type && entry.targetId === candidate.targetId) === index
+        allRelations.findIndex(
+          (entry) => entry.type === candidate.type && entry.targetId === candidate.targetId
+        ) === index
     );
 
     const normalizedEntity: EntityRecord = {
@@ -243,7 +281,10 @@ const normalizeCollections = ({ entities, relations = [] }: RepositoryInput): Re
   }
 
   for (const relation of relations) {
-    relationMap.set(`${relation.sourceType}::${relation.sourceId}::${relation.relationType}::${relation.targetId}`, relation);
+    relationMap.set(
+      `${relation.sourceType}::${relation.sourceId}::${relation.relationType}::${relation.targetId}`,
+      relation
+    );
 
     const entityKey = `${relation.sourceType}::${relation.sourceId}`;
     const existing = entityMap.get(entityKey);
@@ -253,16 +294,23 @@ const normalizeCollections = ({ entities, relations = [] }: RepositoryInput): Re
 
     entityMap.set(entityKey, {
       ...existing,
-      relations: [...existing.relations, { type: relation.relationType, targetId: relation.targetId }].filter(
+      relations: [
+        ...existing.relations,
+        { type: relation.relationType, targetId: relation.targetId }
+      ].filter(
         (candidate, index, allRelations) =>
-          allRelations.findIndex((entry) => entry.type === candidate.type && entry.targetId === candidate.targetId) === index
+          allRelations.findIndex(
+            (entry) => entry.type === candidate.type && entry.targetId === candidate.targetId
+          ) === index
       )
     });
   }
 
   return {
     entities: [...entityMap.values()].sort((left, right) =>
-      left.type === right.type ? left.id.localeCompare(right.id) : left.type.localeCompare(right.type)
+      left.type === right.type
+        ? left.id.localeCompare(right.id)
+        : left.type.localeCompare(right.type)
     ),
     relations: [...relationMap.values()].sort((left, right) =>
       left.sourceType === right.sourceType
@@ -277,14 +325,16 @@ const normalizeCollections = ({ entities, relations = [] }: RepositoryInput): Re
 };
 
 export const loadRegistryFromFs = (registryRoot: string) => {
-  const absoluteRegistryRoot = resolve(registryRoot);
+  const absoluteRegistryRoot = resolveRegistryDirectory(registryRoot);
   const repositoryRoot = findRepositoryRoot(absoluteRegistryRoot);
 
   const entities = findDataFiles(join(absoluteRegistryRoot, 'entities')).map((filePath) =>
     toEntityRecord(parseDataFile(filePath), normalizePath(relative(repositoryRoot, filePath)))
   );
   const relations = findDataFiles(join(absoluteRegistryRoot, 'relations'))
-    .map((filePath) => toRelationRecord(parseDataFile(filePath), normalizePath(relative(repositoryRoot, filePath))))
+    .map((filePath) =>
+      toRelationRecord(parseDataFile(filePath), normalizePath(relative(repositoryRoot, filePath)))
+    )
     .filter((relation): relation is RelationRecord => relation !== undefined);
 
   return createReadOnlyRepository(normalizeCollections({ entities, relations }));
@@ -313,7 +363,8 @@ export const createReadOnlyRepository = ({ entities, relations }: RepositoryInpu
   const frozenRelations = normalizedRelations.map((relation) => Object.freeze({ ...relation }));
 
   return Object.freeze({
-    listTypes: (): readonly string[] => [...new Set(frozenEntities.map((entry) => entry.type))].sort((a, b) => a.localeCompare(b)),
+    listTypes: (): readonly string[] =>
+      [...new Set(frozenEntities.map((entry) => entry.type))].sort((a, b) => a.localeCompare(b)),
     listEntities: (): readonly EntityRecord[] => frozenEntities,
     findEntity: (type: string, id: string): EntityRecord | undefined =>
       frozenEntities.find((entry) => entry.type === type && entry.id === id),
@@ -322,7 +373,13 @@ export const createReadOnlyRepository = ({ entities, relations }: RepositoryInpu
       implementationOrder: IMPLEMENTATION_ORDER,
       readOnly: true,
       entityCount: frozenEntities.length,
-      sourceFilePaths: [...new Set([...frozenEntities, ...frozenRelations].map((entry) => entry.sourceFilePath).filter((path): path is string => typeof path === 'string'))]
+      sourceFilePaths: [
+        ...new Set(
+          [...frozenEntities, ...frozenRelations]
+            .map((entry) => entry.sourceFilePath)
+            .filter((path): path is string => typeof path === 'string')
+        )
+      ]
     })
   });
 };
