@@ -1,0 +1,5 @@
+id: service-web
+type: service
+title: Web Service
+tags: [http]
+relations: []

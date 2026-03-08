@@ -1,0 +1,5 @@
+id: dns-record-app
+type: dns_record
+title: app.example.test
+tags: [dns]
+relations: []

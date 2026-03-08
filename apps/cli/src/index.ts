@@ -1,6 +1,7 @@
 declare const process: { argv: string[] } | undefined;
 import { buildBundle } from '@ledra/bundle';
 import { createReadOnlyRepository } from '@ledra/core';
+import { SAMPLE_ENTITIES } from '@ledra/sample-data';
 import { searchEntities } from '@ledra/search';
 import { validateEntities } from '@ledra/validator';
 
@@ -10,15 +11,16 @@ export type CliCommand = 'validate' | 'build' | 'serve' | 'inspect' | 'export';
 
 export const runLedraCli = (args: readonly string[]): string => {
   const [command, ...rest] = args;
-  const repository = createReadOnlyRepository();
+  const repository = createReadOnlyRepository(SAMPLE_ENTITIES);
 
   switch (command as CliCommand | undefined) {
     case 'validate': {
       const result = validateEntities(repository.listEntities());
-      return JSON.stringify(result, null, 2);
+      return JSON.stringify({ result, diagnostics: repository.diagnostics() }, null, 2);
     }
     case 'build': {
-      return JSON.stringify(buildBundle(repository), null, 2);
+      const bundle = buildBundle(repository);
+      return JSON.stringify({ bundle, diagnostics: repository.diagnostics() }, null, 2);
     }
     case 'serve':
       return 'serve mode is read-only and scheduled after validate/build.';

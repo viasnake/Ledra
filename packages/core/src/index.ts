@@ -24,10 +24,16 @@ const DEFAULT_ENTITIES: readonly EntityRecord[] = [
 export const createReadOnlyRepository = (
   entities: readonly EntityRecord[] = DEFAULT_ENTITIES
 ) => {
-  const frozen = entities.map((entity) => Object.freeze({ ...entity, relations: [...entity.relations], tags: [...entity.tags] }));
+  const frozen = entities.map((entity) =>
+    Object.freeze({
+      ...entity,
+      relations: [...entity.relations],
+      tags: [...entity.tags]
+    })
+  );
 
   return Object.freeze({
-    listTypes: (): readonly string[] => [...new Set(frozen.map((entry) => entry.type))],
+    listTypes: (): readonly string[] => [...new Set(frozen.map((entry) => entry.type))].sort((a, b) => a.localeCompare(b)),
     listEntities: (): readonly EntityRecord[] => frozen,
     findEntity: (type: string, id: string): EntityRecord | undefined =>
       frozen.find((entry) => entry.type === type && entry.id === id),
@@ -43,7 +49,10 @@ export const createReadOnlyRepository = (
     diagnostics: (): Diagnostics => ({
       implementationOrder: IMPLEMENTATION_ORDER,
       readOnly: true,
-      entityCount: frozen.length
+      entityCount: frozen.length,
+      sourceFilePaths: frozen
+        .map((entity) => entity.sourceFilePath)
+        .filter((path): path is string => typeof path === 'string')
     })
   });
 };
