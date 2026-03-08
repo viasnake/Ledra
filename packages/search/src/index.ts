@@ -173,11 +173,11 @@ const buildRelatedEntityIds = (
         const targetId = relation.targetId.toLowerCase();
 
         if (sourceId === normalizedRelatedTo) {
-          return [sourceId, targetId];
+          return [targetId];
         }
 
         if (targetId === normalizedRelatedTo) {
-          return [sourceId, targetId];
+          return [sourceId];
         }
 
         return [];
