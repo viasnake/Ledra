@@ -34,6 +34,9 @@
       ],
       "@ledra/search": [
         "packages/search/src/index.ts"
+      ],
+      "@ledra/sample-data": [
+        "packages/sample-data/src/index.ts"
       ]
     }
   }

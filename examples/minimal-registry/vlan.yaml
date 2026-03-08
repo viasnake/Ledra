@@ -1,0 +1,5 @@
+id: vlan-100
+type: vlan
+title: VLAN 100
+tags: [l2]
+relations: []

@@ -4,6 +4,7 @@ import { createReadOnlyRepository, type ReadOnlyRepository } from '@ledra/core';
 export const packageName = '@ledra/bundle';
 
 export const buildBundle = (repository: ReadOnlyRepository = createReadOnlyRepository()): LedraBundle => ({
+  kind: 'static-bundle',
   generatedAt: new Date().toISOString(),
   types: repository.listTypes(),
   entities: repository.listEntities()

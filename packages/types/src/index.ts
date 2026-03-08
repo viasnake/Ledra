@@ -21,6 +21,7 @@ export type EntityRecord = {
   summary?: string;
   tags: readonly string[];
   relations: readonly EntityRelation[];
+  sourceFilePath?: string;
 };
 
 export type EntityRelation = {
@@ -29,6 +30,7 @@ export type EntityRelation = {
 };
 
 export type LedraBundle = {
+  kind: 'static-bundle';
   generatedAt: string;
   types: readonly string[];
   entities: readonly EntityRecord[];
@@ -38,6 +40,7 @@ export type ValidationIssue = {
   code: 'missing-id' | 'missing-type' | 'invalid-relation-target';
   message: string;
   entityId?: string;
+  sourceFilePath?: string;
 };
 
 export type ValidationResult = {
@@ -49,4 +52,5 @@ export type Diagnostics = {
   implementationOrder: readonly ImplementationTarget[];
   readOnly: true;
   entityCount: number;
+  sourceFilePaths: readonly string[];
 };
