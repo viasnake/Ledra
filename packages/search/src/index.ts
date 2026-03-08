@@ -5,7 +5,7 @@ export const packageName = '@ledra/search';
 
 export const searchEntities = (
   query: string,
-  repository: ReadOnlyRepository = createReadOnlyRepository()
+  repository: ReadOnlyRepository = createReadOnlyRepository({ entities: [] })
 ): readonly EntityRecord[] => {
   const normalized = query.trim().toLowerCase();
 

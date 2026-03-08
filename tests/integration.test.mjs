@@ -38,5 +38,5 @@ test('diagnostics include source file paths', () => {
   const result = runCli('validate');
 
   assert.equal(result.diagnostics.sourceFilePaths.length, 8);
-  assert.ok(result.diagnostics.sourceFilePaths.every((entry) => entry.startsWith('packages/sample-data/data/')));
+  assert.ok(result.diagnostics.sourceFilePaths.every((entry) => entry.startsWith('packages/sample-data/registry/entities/')));
 });

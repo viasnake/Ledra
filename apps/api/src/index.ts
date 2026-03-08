@@ -1,12 +1,12 @@
 import { buildBundle } from '@ledra/bundle';
-import { createReadOnlyRepository } from '@ledra/core';
+import { loadRegistryFromFs } from '@ledra/core';
 import { searchEntities } from '@ledra/search';
 import { API_ENDPOINTS } from '@ledra/schemas';
 
 export const appName = '@ledra/api';
 
-export const createReadOnlyApi = () => {
-  const repository = createReadOnlyRepository();
+export const createReadOnlyApi = (registryRoot = 'packages/sample-data/registry') => {
+  const repository = loadRegistryFromFs(registryRoot);
 
   return {
     endpoints: API_ENDPOINTS,
