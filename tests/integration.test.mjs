@@ -2,15 +2,17 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 
+const REGISTRY_PATH = 'examples/minimal-registry';
+
 const runCli = (command) => {
-  const output = execFileSync('node', ['apps/cli/dist/apps/cli/src/index.js', command], {
+  const output = execFileSync('node', ['apps/cli/dist/apps/cli/src/index.js', command, '--registry', REGISTRY_PATH], {
     encoding: 'utf8'
   });
 
   return JSON.parse(output);
 };
 
-test('ledra validate succeeds with sample data', () => {
+test('ledra validate succeeds with registry data', () => {
   const result = runCli('validate');
 
   assert.equal(result.result.ok, true);
@@ -38,5 +40,5 @@ test('diagnostics include source file paths', () => {
   const result = runCli('validate');
 
   assert.equal(result.diagnostics.sourceFilePaths.length, 8);
-  assert.ok(result.diagnostics.sourceFilePaths.every((entry) => entry.startsWith('packages/sample-data/data/')));
+  assert.ok(result.diagnostics.sourceFilePaths.every((entry) => entry.startsWith('examples/minimal-registry/')));
 });

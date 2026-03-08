@@ -38,6 +38,10 @@
       "@ledra/sample-data": [
         "packages/sample-data/src/index.ts"
       ]
-    }
+    },
+    "typeRoots": [
+      "./types",
+      "./node_modules/@types"
+    ]
   }
 }

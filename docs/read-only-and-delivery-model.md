@@ -1,26 +1,31 @@
-# Read-only 原則と static-first 配信モデル
+# Read-only and static-first delivery model
 
-## Read-only 原則
+## Read-only contract
 
-Ledra の公開面（API / UI / 検索インデックス）は read-only を基本とします。
+Ledra CLI/API are read-only views of registry data.
 
-- 外部クライアントからの書き込みは受け付けない。
-- 変更は Pull Request ベースで Git に対して行う。
-- 監査ログは Git history に一本化する。
+- No write endpoint is exposed.
+- Data changes happen through commits in the registry data Git repository.
+- Diagnostics include `sourceFilePath` so reviewers can trace every entity to versioned files.
 
-## Static-first 配信モデル
+## Static-first workflow
 
-配信は静的成果物を優先し、必要時にのみ動的 API を追加します。
+1. Validate data:
 
-1. `validate` でデータを検証。
-2. `search` で静的インデックスを生成。
-3. `browse` 用の静的ページ/JSON を生成。
-4. CDN / オブジェクトストレージに配置。
-5. 要件がある場合のみ `serve` を read-only API として併用。
+   ```bash
+   node apps/cli/dist/apps/cli/src/index.js validate --registry <registry_repo_path>
+   ```
 
-## メリット
+2. Build/export static bundle:
 
-- シンプルな運用（障害点が少ない）。
-- キャッシュしやすく高速。
-- セキュリティ境界が明確（書き込み経路を Git に限定）。
+   ```bash
+   node apps/cli/dist/apps/cli/src/index.js export --registry <registry_repo_path> > dist/bundle.json
+   ```
 
+3. Serve bundle directly (CDN/object storage) or wrap with read-only API endpoints.
+
+## Why this model
+
+- Operationally simple and cache-friendly.
+- Strong audit trail through Git history.
+- Clear trust boundary: the registry Git repo is the single source of truth.

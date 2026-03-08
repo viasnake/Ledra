@@ -3,7 +3,7 @@ main = "worker.mjs"
 compatibility_date = "2025-01-01"
 
 [assets]
-directory = "../../dist"
+directory = "./public"
 
 # account_id = "<YOUR_ACCOUNT_ID>"
 # route = "registry.example.com/*"

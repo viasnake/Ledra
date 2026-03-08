@@ -2,7 +2,12 @@ services:
   ledra:
     build:
       context: ../..
-      dockerfile: deploy/docker/Dockerfile.template
+      dockerfile: deploy/docker/Dockerfile
+    environment:
+      PORT: "8080"
+      LEDRA_REGISTRY_PATH: /data/registry
     ports:
       - "8080:8080"
+    volumes:
+      - ../../examples/minimal-registry:/data/registry:ro
     restart: unless-stopped

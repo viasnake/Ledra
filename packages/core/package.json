@@ -12,6 +12,7 @@
   },
   "exports": "./src/index.ts",
   "dependencies": {
-    "@ledra/types": "0.1.0"
+    "@ledra/types": "0.1.0",
+    "js-yaml": "^4.1.0"
   }
 }

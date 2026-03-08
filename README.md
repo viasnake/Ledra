@@ -1,18 +1,24 @@
 # Ledra
 
-Ledra は **Git-native registry engine** です。レジストリのデータは Git リポジトリで管理され、`validate / search / browse / serve` のワークフローを前提に運用します。
+Ledra is a **Git-native registry engine** for read-only, static-first delivery.
 
-## 重要な前提
+- **Git-native**: the registry data repository is the source of truth.
+- **Read-only by design**: Ledra validates, indexes, and serves data without mutating it.
+- **Static-first**: generate portable build artifacts first, then add API surfaces where needed.
+- **IPAM is one use case**: the same model also works for DNS, service inventory, and other domains.
 
-- **Git が唯一の正本**: すべてのレコード変更は Git commit / history に集約します。
-- **Self-host OSS**: SaaS 前提ではなく、任意の環境で自己ホストできる OSS として設計します。
-- **IPAM は一例**: IPAM は代表的なユースケースの 1 つであり、同じモデルで他ドメインにも適用可能です。
-- **Static-first 配信**: まず静的成果物として配信し、必要時のみ API を追加します。
+## Core workflow
 
-## ドキュメント
+1. Keep registry records in a Git repository (JSON/YAML).
+2. Run Ledra validation and bundle build against that repo.
+3. Publish generated static output and optional read-only API endpoints.
 
-- [Self-host クイックスタート](docs/self-host-quickstart.md)
-- [CLI 利用例](docs/cli-examples.md)
-- [データリポジトリ推奨構成](docs/data-repository-structure.md)
-- [Read-only 原則と static-first 配信モデル](docs/read-only-and-delivery-model.md)
-- [再現可能なデプロイ手順（Cloudflare / Docker）](docs/deployment-reproducible.md)
+## Docs
+
+- [Self-host guide](docs/self-host-guide.md)
+- [CLI examples](docs/cli-examples.md)
+- [Data repository structure](docs/data-repository-structure.md)
+- [Read-only and static-first model](docs/read-only-and-delivery-model.md)
+- [Reproducible deployment notes](docs/deployment-reproducible.md)
+- [Docker example](deploy/docker/README.md)
+- [Cloudflare example](deploy/cloudflare/README.md)
