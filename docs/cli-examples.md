@@ -3,43 +3,39 @@
 Build first:
 
 ```bash
+npm install
 npm run build
 ```
 
-Use a Git-tracked registry data repo (example path: `./.local/registry-data`).
+Assume the registry repo path is `./.local/registry-data`.
 
-## Validate
+## Validate registry graph
 
 ```bash
 node apps/cli/dist/apps/cli/src/index.js validate --registry ./.local/registry-data
 ```
 
-## Build static bundle + diagnostics
+## Inspect entities
 
 ```bash
-node apps/cli/dist/apps/cli/src/index.js build --registry ./.local/registry-data
+node apps/cli/dist/apps/cli/src/index.js inspect --registry ./.local/registry-data --query "type=host"
+node apps/cli/dist/apps/cli/src/index.js inspect --registry ./.local/registry-data --query '{"type":"prefix","attributes":[{"field":"vlanId","operator":"=","value":"vlan-10"}]}'
 ```
 
-## Inspect/search entities
+## Build bundle JSON
 
 ```bash
-node apps/cli/dist/apps/cli/src/index.js inspect --registry ./.local/registry-data vlan
+node apps/cli/dist/apps/cli/src/index.js build --registry ./.local/registry-data --out ./dist/bundle.json
 ```
 
 ## Export bundle JSON
 
 ```bash
-node apps/cli/dist/apps/cli/src/index.js export --registry ./.local/registry-data > ./dist/bundle.json
+node apps/cli/dist/apps/cli/src/index.js export --registry ./.local/registry-data --out ./dist/bundle.json
 ```
 
-## Serve command status
+## Run read-only API
 
 ```bash
-node apps/cli/dist/apps/cli/src/index.js serve
-```
-
-Current output:
-
-```text
-serve mode is read-only and scheduled after validate/build.
+node apps/cli/dist/apps/cli/src/index.js serve --registry ./.local/registry-data --port 3000
 ```

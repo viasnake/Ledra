@@ -1,0 +1,11 @@
+{
+  "id": "segment-access-a",
+  "type": "segment",
+  "title": "Access Segment",
+  "tags": ["access"],
+  "attributes": {
+    "name": "access",
+    "siteId": "site-edge-a",
+    "role": "campus"
+  }
+}

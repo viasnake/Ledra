@@ -1,17 +1,41 @@
 # Ledra
 
-Ledra is a **Git-native registry engine** for read-only, static-first delivery.
+Ledra is a **Git-native registry engine** that validates, searches, browses, and serves structured registry data from Git.
 
 - **Git-native**: the registry data repository is the source of truth.
-- **Read-only by design**: Ledra validates, indexes, and serves data without mutating it.
-- **Static-first**: generate portable build artifacts first, then add API surfaces where needed.
-- **IPAM is one use case**: the same model also works for DNS, service inventory, and other domains.
+- **Read-only by design**: CLI, API, and viewer do not mutate registry data.
+- **Static-first**: `ledra build` and `ledra export` produce portable artifacts that can be hosted without a live database.
+- **Registry-first**: IPAM is one use case, not the product boundary.
 
 ## Core workflow
 
-1. Keep registry records in a Git repository (JSON/YAML).
+1. Keep registry records in a Git repository under `registry/`.
 2. Run Ledra validation and bundle build against that repo.
 3. Publish generated static output and optional read-only API endpoints.
+
+## Registry layout
+
+```text
+registry/
+  entity-types/
+  entities/
+    site/
+    segment/
+    vlan/
+    prefix/
+    allocation/
+    host/
+    service/
+    dns_record/
+  relations/
+  views/
+  policies/
+```
+
+- `entities/`: one file per entity
+- `relations/`: explicit graph edges between entities
+- `views/`: read-only viewer presets and filters
+- `policies/`: validation metadata and rules
 
 ## Docs
 

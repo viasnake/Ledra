@@ -1,6 +1,6 @@
 # Docker deployment example
 
-This runs Ledra as a read-only API backed by a mounted registry data repo.
+This runs Ledra as a read-only API backed by a mounted canonical `registry/` data repo.
 
 ## Run
 

@@ -8,7 +8,7 @@ Use a registry data repository as source-of-truth input, then regenerate artifac
 
 ```bash
 node apps/cli/dist/apps/cli/src/index.js validate --registry <registry_repo_path>
-node apps/cli/dist/apps/cli/src/index.js build --registry <registry_repo_path>
+node apps/cli/dist/apps/cli/src/index.js build --registry <registry_repo_path> --out dist/bundle.json
 ```
 
 ## Docker
@@ -31,6 +31,6 @@ docker compose -f deploy/docker/compose.yaml up --build -d
 - Uses CLI export output wired into assets (`deploy/cloudflare/public/bundle.json`).
 
 ```bash
-node apps/cli/dist/apps/cli/src/index.js export --registry <registry_repo_path> > deploy/cloudflare/public/bundle.json
+node apps/cli/dist/apps/cli/src/index.js export --registry <registry_repo_path> --out deploy/cloudflare/public/bundle.json
 cd deploy/cloudflare && npx wrangler deploy
 ```

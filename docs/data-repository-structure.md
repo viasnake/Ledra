@@ -1,33 +1,49 @@
 # Data repository structure
 
-Ledra reads JSON/YAML entity files from a Git-managed registry repository.
+Ledra reads a canonical `registry/` tree from a Git-managed data repository.
 
-Recommended layout:
+## Canonical layout
 
 ```text
 registry/
+  entity-types/
   entities/
     site/
       tokyo.yaml
     segment/
-      core.json
+      core.yaml
     vlan/
-      vlan-100.yaml
+      app.yaml
     prefix/
-      prefix-10-0-0-0-24.json
+      app.yaml
+    allocation/
+      app-01.yaml
+    host/
+      app-01.yaml
+    service/
+      web.yaml
+    dns_record/
+      app.yaml
+  relations/
+    site-contains-segment.yaml
+    service-resolves-to-dns.yaml
+  views/
+    site-overview.yaml
+  policies/
+    core.yaml
 ```
 
 ## Loader behavior
 
-- Scans recursively for `.json`, `.yaml`, `.yml`.
-- Uses explicit `type`/`id` fields when present.
-- If `type` is missing, Ledra infers it from path:
-  - `entities/<type>/...` -> `<type>`
-  - `<type>/...` -> `<type>`
-- If `id` is missing, Ledra falls back to the filename stem.
+- `registry/entities`, `registry/relations`, `registry/views`, and `registry/policies` are required.
+- Each record must live in exactly one file.
+- Ledra reads `.json`, `.yaml`, and `.yml` files recursively.
+- `sourceFilePath` is preserved for diagnostics and viewer/API output.
 
 ## Record guidance
 
-- One record per file for clean Git diffs.
 - Keep `id` stable across refactors.
-- Keep `relations` explicit (`{ type, targetId }`) for validator checks.
+- Keep `type` explicit in every entity file.
+- Put graph edges in `relations/`, not inline inside entity records.
+- Use `views/` for read-only navigation presets.
+- Use `policies/` for validation metadata, not imperative workflows.

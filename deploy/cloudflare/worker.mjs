@@ -13,7 +13,7 @@ export default {
       }
 
       const payload = await bundle.json();
-      return Response.json({ bundle: payload, readOnly: true });
+      return Response.json(payload.graph?.views ?? []);
     }
 
     return env.ASSETS.fetch(request);

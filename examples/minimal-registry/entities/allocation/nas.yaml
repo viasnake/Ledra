@@ -1,0 +1,10 @@
+id: allocation-nas
+type: allocation
+title: nas allocation
+tags:
+  - ipam
+attributes:
+  address: 192.168.10.20
+  prefixId: prefix-192-168-10-0-24
+  hostId: host-nas
+  role: primary

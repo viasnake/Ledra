@@ -2,11 +2,11 @@
 
 ## Read-only contract
 
-Ledra CLI/API are read-only views of registry data.
+Ledra CLI/API/viewer are read-only views of registry data.
 
 - No write endpoint is exposed.
 - Data changes happen through commits in the registry data Git repository.
-- Diagnostics include `sourceFilePath` so reviewers can trace every entity to versioned files.
+- Diagnostics include `sourceFilePath` so reviewers can trace entities, relations, views, and policies to versioned files.
 
 ## Static-first workflow
 
@@ -19,10 +19,10 @@ Ledra CLI/API are read-only views of registry data.
 2. Build/export static bundle:
 
    ```bash
-   node apps/cli/dist/apps/cli/src/index.js export --registry <registry_repo_path> > dist/bundle.json
+   node apps/cli/dist/apps/cli/src/index.js export --registry <registry_repo_path> --out dist/bundle.json
    ```
 
-3. Serve bundle directly (CDN/object storage) or wrap with read-only API endpoints.
+3. Serve `bundle.json` directly from static hosting or wrap the same registry in read-only API endpoints.
 
 ## Why this model
 

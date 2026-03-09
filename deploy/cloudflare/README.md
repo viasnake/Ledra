@@ -1,6 +1,6 @@
 # Cloudflare deployment example (Workers + Assets)
 
-This example publishes static assets and exposes a read-only `/api/views` endpoint.
+This example publishes static assets and exposes a read-only `/api/views` endpoint backed by `bundle.json`.
 
 ## 1) Build Ledra
 
@@ -20,7 +20,7 @@ cp -R examples/minimal-registry/. ./.local/registry-data/
 
 ```bash
 mkdir -p deploy/cloudflare/public
-node apps/cli/dist/apps/cli/src/index.js export --registry ./.local/registry-data > deploy/cloudflare/public/bundle.json
+node apps/cli/dist/apps/cli/src/index.js export --registry ./.local/registry-data --out deploy/cloudflare/public/bundle.json
 ```
 
 ## 4) Configure Wrangler and deploy
@@ -34,5 +34,5 @@ npx wrangler deploy
 ## Routes
 
 - `/bundle.json` -> static artifact from CLI export
-- `/api/views` -> Worker wraps `bundle.json` as `{ bundle, readOnly: true }`
+- `/api/views` -> Worker returns `bundle.graph.views`
 - `/health` -> basic read-only health check
