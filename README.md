@@ -52,6 +52,8 @@ registry/
 
 - [Self-host guide](docs/self-host-guide.md)
 - [CLI examples](docs/cli-examples.md)
+- [API reference](docs/api-reference.md)
+- [Bundle format](docs/bundle-format.md)
 - [Data repository structure](docs/data-repository-structure.md)
 - [Read-only and static-first model](docs/read-only-and-delivery-model.md)
 - [Reproducible deployment notes](docs/deployment-reproducible.md)
