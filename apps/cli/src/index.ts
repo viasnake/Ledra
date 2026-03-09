@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /// <reference path="./node-shims.d.ts" />
 
 declare const process:
@@ -10,6 +12,7 @@ declare const process:
 
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { buildBundle } from '@ledra/bundle';
 import { loadRegistryFromFs } from '@ledra/core';
 import { createHttpEntrypoint } from '@ledra/api';
@@ -17,6 +20,7 @@ import { searchEntities, type SearchQueryInput } from '@ledra/search';
 import { validateRegistry } from '@ledra/validator';
 
 export const appName = '@ledra/cli';
+export const cliVersion = '0.1.0';
 
 export type CliCommand = 'validate' | 'build' | 'serve' | 'inspect' | 'export';
 
@@ -30,8 +34,24 @@ type ParsedArgs = {
 
 const DEFAULT_REGISTRY_ROOT = 'packages/sample-data/registry';
 const DEFAULT_PORT = 3000;
-const usage =
-  'Usage: ledra <validate|build|serve|inspect|export> [--registry <path>] [--out <path>] [--query <text|json>] [--port <number>]';
+const usage = [
+  'Usage: ledra <validate|build|serve|inspect|export> [--registry <path>] [--out <path>] [--query <text|json>] [--port <number>]',
+  '',
+  'Commands:',
+  '  validate  Validate registry graph and diagnostics',
+  '  build     Build bundle plus diagnostics payload',
+  '  inspect   Search registry entities',
+  '  export    Write bundle JSON only',
+  '  serve     Start read-only API server',
+  '',
+  'Flags:',
+  '  --registry <path>  Registry root path',
+  '  --out <path>       Output file path for build/export',
+  '  --query <query>    Search query string or JSON object',
+  '  --port <number>    Port for serve',
+  '  --help             Show help',
+  '  --version          Show CLI version'
+].join('\n');
 
 const parsePort = (value: string | undefined): number | undefined => {
   if (value === undefined) {
@@ -128,6 +148,14 @@ const loadRegistryState = (registryRoot: string) => {
 };
 
 export const runLedraCli = (args: readonly string[]): string => {
+  if (args.includes('--help') || args.includes('-h')) {
+    return usage;
+  }
+
+  if (args.includes('--version') || args.includes('-v')) {
+    return cliVersion;
+  }
+
   const parsed = parseArgs(args);
   const registryRoot = resolveRegistryRoot(parsed.registryRoot);
 
@@ -191,7 +219,13 @@ export const startLedraServe = async (args: readonly string[]) => {
   });
 };
 
-if (typeof process !== 'undefined' && process.argv[1]) {
+const isExecutedAsEntrypoint =
+  typeof process !== 'undefined' &&
+  process.env.LEDRA_CLI_EMBEDDED !== '1' &&
+  process.argv[1] !== undefined &&
+  resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+
+if (isExecutedAsEntrypoint) {
   const args = process.argv.slice(2);
   const parsed = parseArgs(args);
 

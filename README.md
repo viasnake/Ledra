@@ -13,6 +13,17 @@ Ledra is a **Git-native registry engine** that validates, searches, browses, and
 2. Run Ledra validation and bundle build against that repo.
 3. Publish generated static output and optional read-only API endpoints.
 
+## Quickstart
+
+```bash
+npm install
+npm run build
+npm exec --workspace @ledra/cli ledra -- validate --registry packages/sample-data/registry
+npm exec --workspace @ledra/cli ledra -- export --registry packages/sample-data/registry --out apps/web/dist/bundle.json
+```
+
+Then open `apps/web/dist/index.html` with a static file server and browse the generated registry bundle.
+
 ## Registry layout
 
 ```text

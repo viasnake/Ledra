@@ -13,13 +13,13 @@ Ledra CLI/API/viewer are read-only views of registry data.
 1. Validate data:
 
    ```bash
-   node apps/cli/dist/apps/cli/src/index.js validate --registry <registry_repo_path>
+   npm exec --workspace @ledra/cli ledra -- validate --registry <registry_repo_path>
    ```
 
 2. Build/export static bundle:
 
    ```bash
-   node apps/cli/dist/apps/cli/src/index.js export --registry <registry_repo_path> --out dist/bundle.json
+   npm exec --workspace @ledra/cli ledra -- export --registry <registry_repo_path> --out dist/bundle.json
    ```
 
 3. Serve `bundle.json` directly from static hosting or wrap the same registry in read-only API endpoints.

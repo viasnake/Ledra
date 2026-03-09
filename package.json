@@ -10,6 +10,7 @@
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
+    "ledra": "npm exec --workspace @ledra/cli ledra --",
     "lint": "eslint . --ext .ts,.tsx,.mts,.cts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

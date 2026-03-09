@@ -5,7 +5,7 @@
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "ledra": "dist/apps/cli/src/index.js"
+    "ledra": "bin/ledra.js"
   },
   "types": "src/index.ts",
   "scripts": {

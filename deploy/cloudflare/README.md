@@ -20,7 +20,7 @@ cp -R examples/minimal-registry/. ./.local/registry-data/
 
 ```bash
 mkdir -p deploy/cloudflare/public
-node apps/cli/dist/apps/cli/src/index.js export --registry ./.local/registry-data --out deploy/cloudflare/public/bundle.json
+npm exec --workspace @ledra/cli ledra -- export --registry ./.local/registry-data --out deploy/cloudflare/public/bundle.json
 ```
 
 ## 4) Configure Wrangler and deploy

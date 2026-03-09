@@ -37,15 +37,15 @@ cd ../..
 ## 3) Validate, inspect, and build
 
 ```bash
-node apps/cli/dist/apps/cli/src/index.js validate --registry ./.local/registry-data
-node apps/cli/dist/apps/cli/src/index.js inspect --registry ./.local/registry-data --query "type=host"
-node apps/cli/dist/apps/cli/src/index.js build --registry ./.local/registry-data --out ./.local/bundle.json
+npm exec --workspace @ledra/cli ledra -- validate --registry ./.local/registry-data
+npm exec --workspace @ledra/cli ledra -- inspect --registry ./.local/registry-data --query "type=host"
+npm exec --workspace @ledra/cli ledra -- build --registry ./.local/registry-data --out ./.local/bundle.json
 ```
 
 ## 4) Serve a read-only API
 
 ```bash
-node apps/cli/dist/apps/cli/src/index.js serve --registry ./.local/registry-data --port 3000
+npm exec --workspace @ledra/cli ledra -- serve --registry ./.local/registry-data --port 3000
 curl http://127.0.0.1:3000/api/diagnostics
 curl http://127.0.0.1:3000/api/views
 ```
