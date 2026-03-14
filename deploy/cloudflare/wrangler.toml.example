@@ -15,5 +15,5 @@ workers_dev = true
 workers_dev = false
 
 [[env.production.routes]]
-pattern = "registry.example.com/*"
+pattern = "registry.example.com"
 custom_domain = true

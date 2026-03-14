@@ -57,7 +57,7 @@ export const renderProductionWrangler = ({ inputPath, outputPath, workerName, ho
   const source = readFileSync(input, 'utf8');
   const rendered = source
     .replace(/name = ".*"/u, `name = "${workerName}"`)
-    .replace(/pattern = ".*"/u, `pattern = "${hostname}/*"`);
+    .replace(/pattern = ".*"/u, `pattern = "${hostname}"`);
 
   mkdirSync(dirname(output), { recursive: true });
   writeFileSync(output, rendered, 'utf8');
