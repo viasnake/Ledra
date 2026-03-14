@@ -143,7 +143,7 @@ jobs:
               body
             });
         env:
-          CLOUDFLARE_ACCOUNT_SUBDOMAIN: your-account-subdomain
+          CLOUDFLARE_ACCOUNT_SUBDOMAIN: ${{ vars.CLOUDFLARE_ACCOUNT_SUBDOMAIN }}
 
   delete-preview:
     if: github.event.action == 'closed' && github.event.pull_request.head.repo.full_name == github.repository
