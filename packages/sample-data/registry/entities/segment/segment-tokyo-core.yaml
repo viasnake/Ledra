@@ -1,0 +1,11 @@
+id: segment-tokyo-core
+type: segment
+title: Tokyo Core Segment
+summary: Routed production segment for application and database traffic.
+tags:
+  - production
+  - core
+attributes:
+  name: tokyo-core
+  siteId: site-tokyo-prod
+  role: routing

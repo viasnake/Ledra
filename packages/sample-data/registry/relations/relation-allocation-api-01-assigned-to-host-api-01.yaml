@@ -1,0 +1,8 @@
+id: relation-allocation-api-01-assigned-to-host-api-01
+type: assigned_to
+source:
+  type: allocation
+  id: allocation-api-01
+target:
+  type: host
+  id: host-api-01

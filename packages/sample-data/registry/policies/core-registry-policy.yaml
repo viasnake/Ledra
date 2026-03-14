@@ -1,10 +1,10 @@
 id: policy-core-registry
 title: Core Registry Policy
-summary: Keep key sample records tagged and referenced.
+summary: Keep the demo registry tagged, named, and connected.
 rules:
   - code: require-tag
     targetType: site
-    value: production
+    value: apac
   - code: require-attribute
     targetType: host
     field: fqdn

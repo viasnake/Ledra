@@ -1,0 +1,8 @@
+id: relation-prefix-tokyo-db-allocates-db-01
+type: allocates
+source:
+  type: prefix
+  id: prefix-tokyo-db
+target:
+  type: allocation
+  id: allocation-db-01

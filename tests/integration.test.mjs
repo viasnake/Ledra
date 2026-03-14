@@ -36,9 +36,9 @@ test('ledra validate succeeds with sample registry graph', () => {
   assert.equal(result.validation.ok, true);
   assert.equal(result.validation.diagnostics.length, 0);
   assert.deepEqual(result.diagnostics.counts, {
-    entities: 8,
-    relations: 8,
-    views: 2,
+    entities: 34,
+    relations: 37,
+    views: 7,
     policies: 1
   });
 });
@@ -51,14 +51,14 @@ test('ledra build outputs a static bundle and writes --out', () => {
     const result = runCli(['build', '--registry', registryPath, '--out', outPath]);
 
     assert.equal(result.bundle.kind, 'static-bundle');
-    assert.equal(result.bundle.graph.entities.length, 8);
-    assert.equal(result.bundle.graph.relations.length, 8);
-    assert.equal(result.bundle.graph.views.length, 2);
+    assert.equal(result.bundle.graph.entities.length, 34);
+    assert.equal(result.bundle.graph.relations.length, 37);
+    assert.equal(result.bundle.graph.views.length, 7);
     assert.equal(result.bundle.graph.policies.length, 1);
 
     const writtenBundle = JSON.parse(readFileSync(outPath, 'utf8'));
     assert.equal(writtenBundle.kind, 'static-bundle');
-    assert.equal(writtenBundle.graph.entities.length, 8);
+    assert.equal(writtenBundle.graph.entities.length, 34);
   } finally {
     rmSync(tempDir, { recursive: true, force: true });
   }
@@ -67,7 +67,7 @@ test('ledra build outputs a static bundle and writes --out', () => {
 test('diagnostics include source file paths across entity and registry records', () => {
   const result = runCli(['validate', '--registry', registryPath]);
 
-  assert.equal(result.diagnostics.sourceFilePaths.length, 19);
+  assert.equal(result.diagnostics.sourceFilePaths.length, 79);
   assert.ok(
     result.diagnostics.sourceFilePaths.some((entry) => entry.startsWith('registry/entities/'))
   );
@@ -87,7 +87,7 @@ test('inspect supports structured query input over attributes', () => {
   const result = runCli(['inspect', '--registry', registryPath, '--query', query]);
 
   assert.equal(result.length, 1);
-  assert.equal(result[0].id, 'site-tokyo');
+  assert.equal(result[0].id, 'site-tokyo-prod');
 });
 
 test('export writes a bundle file when --out is provided', () => {
@@ -100,7 +100,7 @@ test('export writes a bundle file when --out is provided', () => {
     assert.equal(result.kind, 'static-bundle');
     const writtenBundle = JSON.parse(readFileSync(outPath, 'utf8'));
     assert.equal(writtenBundle.kind, 'static-bundle');
-    assert.equal(writtenBundle.graph.views.length, 2);
+    assert.equal(writtenBundle.graph.views.length, 7);
   } finally {
     rmSync(tempDir, { recursive: true, force: true });
   }
@@ -109,14 +109,14 @@ test('export writes a bundle file when --out is provided', () => {
 test('read-only API exposes registry data without mutation paths', () => {
   const api = createReadOnlyApi(registryPath);
   const types = api['/api/types']();
-  const search = api['/api/search']('attributes.siteId=site-tokyo');
+  const search = api['/api/search']('attributes.siteId=site-tokyo-prod');
   const views = api['/api/views']();
   const diagnostics = api['/api/diagnostics']();
 
   assert.ok(Array.isArray(types));
   assert.ok(types.includes('site'));
-  assert.equal(search.length, 4);
-  assert.equal(views.length, 2);
+  assert.equal(search.length, 12);
+  assert.equal(views.length, 7);
   assert.equal(views[0].kind, 'view');
   assert.equal(diagnostics.repository.readOnly, true);
 });

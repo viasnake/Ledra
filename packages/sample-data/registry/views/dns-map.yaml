@@ -1,0 +1,6 @@
+id: view-dns-map
+title: DNS Map
+summary: Browse public and internal DNS records that anchor the demo application stack.
+entityTypes:
+  - dns_record
+query: type=dns_record
