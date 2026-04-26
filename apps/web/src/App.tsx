@@ -21,7 +21,7 @@ type AppState =
     }
   | {
       status: 'error';
-      error: string;
+      message: string;
     };
 
 const App = () => {
@@ -29,25 +29,25 @@ const App = () => {
   const bundlePath = DEFAULT_BUNDLE_PATH;
 
   useEffect(() => {
-    let cancelled = false;
+    let active = true;
 
     void loadBundleFromUrl(bundlePath)
       .then((bundle) => {
-        if (!cancelled) {
+        if (active) {
           setState({ status: 'ready', bundle });
         }
       })
       .catch((error: unknown) => {
-        if (!cancelled) {
+        if (active) {
           setState({
             status: 'error',
-            error: error instanceof Error ? error.message : 'Unknown bundle load error'
+            message: error instanceof Error ? error.message : 'Unknown bundle load error'
           });
         }
       });
 
     return () => {
-      cancelled = true;
+      active = false;
     };
   }, [bundlePath]);
 
@@ -69,7 +69,7 @@ const App = () => {
         <section className="status-panel border-rose-200 bg-rose-50">
           <p className="eyebrow text-rose-700">bundle error</p>
           <h1>{uiCopy.status.errorTitle}</h1>
-          <p>{state.error}</p>
+          <p>{state.message}</p>
         </section>
       </main>
     );

@@ -18,11 +18,22 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildBundle } from '@cataloga/bundle';
 import { createCatalogaRuntime, defaultConfigPath, loadRegistryFromFs } from '@cataloga/core';
+import { validateRegistry } from '@cataloga/validator';
 
 export const appName = '@cataloga/cli';
 export const cliVersion = '1.0.0';
 
-type Command = 'source' | 'ingest' | 'snapshot' | 'topology' | 'drift' | 'serve' | 'export';
+type Command =
+  | 'validate'
+  | 'inspect'
+  | 'build'
+  | 'export'
+  | 'source'
+  | 'ingest'
+  | 'snapshot'
+  | 'topology'
+  | 'drift'
+  | 'serve';
 
 type ParsedArgs = {
   command?: Command;
@@ -34,6 +45,10 @@ const usage = [
   'Usage: cataloga <command> <subcommand> [flags]',
   '',
   'Commands:',
+  '  validate --registry <path>',
+  '  inspect --registry <path> [--query type=<entity-type>|id=<id>|tag=<tag>]',
+  '  build --registry <path> --out <path>',
+  '  export --registry <path> --out <path>',
   '  source add',
   '  source list',
   '  ingest run [--source <id>]',
@@ -41,8 +56,7 @@ const usage = [
   '  topology build [--view <site-overview|aws-vpc-overview|internet-ingress|service-dependency|drift-view>]',
   '  topology export --id <topology-id> --out <path>',
   '  drift compute',
-  '  export --registry <path> --out <path>',
-  '  serve',
+  '  serve [--config <path>|--registry <path>] [--port <port>]',
   '',
   'Global flags:',
   '  --config <path>   Config file path (default: cataloga.yaml)',
@@ -52,10 +66,9 @@ const usage = [
 
 const parseArgs = (args: readonly string[]): ParsedArgs => {
   const normalizedArgs = args[0] === 'cataloga' ? args.slice(1) : args;
-  const [command, maybeSubcommand, ...remaining] = normalizedArgs;
-  const hasSubcommand = maybeSubcommand !== undefined && !maybeSubcommand.startsWith('--');
-  const subcommand = hasSubcommand ? maybeSubcommand : undefined;
-  const rest = hasSubcommand ? remaining : normalizedArgs.slice(1);
+  const [command, maybeSubcommand, ...tail] = normalizedArgs;
+  const subcommand = maybeSubcommand?.startsWith('--') ? undefined : maybeSubcommand;
+  const rest = maybeSubcommand?.startsWith('--') ? [maybeSubcommand, ...tail] : tail;
   const flags: Record<string, string | true> = {};
 
   for (let index = 0; index < rest.length; index += 1) {
@@ -92,6 +105,116 @@ const writeJson = (filePath: string, value: unknown): void => {
   const absolutePath = resolve(filePath);
   mkdirSync(dirname(absolutePath), { recursive: true });
   writeFileSync(absolutePath, formatJson(value), 'utf8');
+};
+
+const registryPathFromArgs = (args: ParsedArgs): string => {
+  const registryPath = asString(args.flags.registry);
+  if (!registryPath) {
+    throw new Error('--registry is required');
+  }
+
+  return registryPath;
+};
+
+const writeRegistryRuntimeConfig = (args: ParsedArgs): string => {
+  const registryPath = resolve(registryPathFromArgs(args));
+  const configPath = asString(args.flags.config) ?? '.cataloga/serve-config.yaml';
+  const storePath = asString(args.flags.store) ?? '.cataloga/canonical-store.json';
+  const evidencePath = asString(args.flags.evidence) ?? '.cataloga/evidence';
+  const content = [
+    'version: 1',
+    'storage:',
+    '  driver: postgres',
+    `  file_path: ${JSON.stringify(resolve(storePath))}`,
+    'object_store:',
+    '  driver: local',
+    `  bucket: ${JSON.stringify(resolve(evidencePath))}`,
+    'sources:',
+    '  - id: registry',
+    '    type: git',
+    '    enabled: true',
+    '    scope: registry',
+    '    poll_mode: full',
+    '    config:',
+    '      ref: local',
+    `      path: ${JSON.stringify(registryPath)}`,
+    '      allow_external_paths: true'
+  ].join('\n');
+
+  mkdirSync(dirname(resolve(configPath)), { recursive: true });
+  writeFileSync(resolve(configPath), `${content}\n`, 'utf8');
+  return configPath;
+};
+
+const handleValidate = (args: ParsedArgs): string => {
+  const repository = loadRegistryFromFs(registryPathFromArgs(args));
+  const result = validateRegistry(repository);
+  if (!result.ok && typeof process !== 'undefined') {
+    process.exitCode = 1;
+  }
+
+  return formatJson(result);
+};
+
+const handleInspect = (args: ParsedArgs): string => {
+  const repository = loadRegistryFromFs(registryPathFromArgs(args));
+  const query = asString(args.flags.query);
+  const graph = repository.graph();
+
+  if (!query) {
+    return formatJson({
+      graph,
+      diagnostics: repository.diagnostics()
+    });
+  }
+
+  const [field, ...rawValueParts] = query.split('=');
+  const value = rawValueParts.join('=').trim();
+  const normalizedField = field?.trim();
+  const entities = graph.entities.filter((entity) => {
+    if (normalizedField === 'type') {
+      return entity.type === value;
+    }
+    if (normalizedField === 'id') {
+      return entity.id === value;
+    }
+    if (normalizedField === 'tag') {
+      return entity.tags.includes(value);
+    }
+
+    return (
+      entity.id.includes(query) ||
+      entity.type.includes(query) ||
+      entity.title.toLowerCase().includes(query.toLowerCase())
+    );
+  });
+
+  return formatJson({ query, entities });
+};
+
+const handleBundleExport = (args: ParsedArgs): string => {
+  const outPath = asString(args.flags.out);
+  if (!outPath) {
+    throw new Error('--out is required');
+  }
+
+  const repository = loadRegistryFromFs(registryPathFromArgs(args));
+  const validation = validateRegistry(repository);
+  if (!validation.ok) {
+    if (typeof process !== 'undefined') {
+      process.exitCode = 1;
+    }
+    return formatJson(validation);
+  }
+
+  const bundle = buildBundle(repository);
+  writeJson(outPath, bundle);
+
+  return formatJson({
+    ok: true,
+    out: outPath,
+    diagnostics: bundle.diagnostics
+  });
 };
 
 const handleSource = (args: ParsedArgs): string => {
@@ -199,7 +322,13 @@ const handleDrift = (args: ParsedArgs): string => {
 };
 
 const handleServe = async (args: ParsedArgs): Promise<string> => {
-  const configPath = asString(args.flags.config) ?? defaultConfigPath;
+  const configPath = args.flags.registry
+    ? writeRegistryRuntimeConfig(args)
+    : (asString(args.flags.config) ?? defaultConfigPath);
+  if (args.flags.registry) {
+    const runtime = createCatalogaRuntime(configPath);
+    await runtime.ingest.run();
+  }
   const port = Number.parseInt(asString(args.flags.port) ?? process?.env.PORT ?? '3000', 10);
   const apiModule = await import('@cataloga/api');
   const server = apiModule.createHttpEntrypoint(configPath);
@@ -208,26 +337,6 @@ const handleServe = async (args: ParsedArgs): Promise<string> => {
   });
 
   return formatJson({ ok: true, port, configPath, status: 'Listening' });
-};
-
-const handleExport = (args: ParsedArgs): string => {
-  const registryRoot = asString(args.flags.registry);
-  const outPath = asString(args.flags.out);
-
-  if (!registryRoot || !outPath) {
-    return formatJson({ error: 'export requires --registry and --out' });
-  }
-
-  const repository = loadRegistryFromFs(registryRoot);
-  const bundle = buildBundle(repository);
-  writeJson(outPath, bundle);
-
-  return formatJson({
-    ok: true,
-    registry: registryRoot,
-    out: outPath,
-    counts: bundle.diagnostics.counts
-  });
 };
 
 export const runCatalogaCli = async (argv: readonly string[]): Promise<string> => {
@@ -242,6 +351,13 @@ export const runCatalogaCli = async (argv: readonly string[]): Promise<string> =
   const args = parseArgs(argv);
 
   switch (args.command) {
+    case 'validate':
+      return handleValidate(args);
+    case 'inspect':
+      return handleInspect(args);
+    case 'build':
+    case 'export':
+      return handleBundleExport(args);
     case 'source':
       return handleSource(args);
     case 'ingest':
@@ -254,8 +370,6 @@ export const runCatalogaCli = async (argv: readonly string[]): Promise<string> =
       return handleDrift(args);
     case 'serve':
       return handleServe(args);
-    case 'export':
-      return handleExport(args);
     default:
       return usage;
   }
